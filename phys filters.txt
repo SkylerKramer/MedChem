@@ -1,0 +1,22 @@
+# Skyler Kramer - Physical filter for medicinal compounds
+from __future__ import print_function
+from rdkit import Chem
+from rdkit.Chem import Descriptors as desc
+
+smiles = ['C1=C(C=CC=C1C2CCCCC2)CC', 'C(CC(=O)N)C(C(=O)O)N', 'C1=CC=C(C=C1)C2=CC(=O)C3=CC=CC=C3O2', 'CC12CCC3C(C1CCC2O)CCC4=CC(=O)CCC34C']
+
+def pfilt(m):
+    logp = desc.MolLogP(m)
+    mw = desc.MolWt(m)
+    hbd = desc.NumHDonors(m)
+    hba = desc.NumHAcceptors(m)
+    tpsa = desc.TPSA(m)
+    nrb = desc.NumRotatableBonds(m)
+
+    if logp > -2 and logp < 7 and mw > 250 and mw < 750 and hbd+hba < 10 and tpsa < 150 and nrb < 10:
+        return(1)
+    else:
+        return(0)
+
+for compound in smiles:
+    print(pfilt(Chem.MolFromSmiles(compound)))

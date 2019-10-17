@@ -1,0 +1,31 @@
+# Skyler Kramer - MCE-18
+from __future__ import print_function
+from rdkit import Chem
+from rdkit.Chem import rdMolDescriptors as rdmd
+from rdkit.Chem import rdchem
+
+smiles = ['C1=C(C=CC=C1C2CCCCC2)CC', 'C(CC(=O)N)C(C(=O)O)N', 'C1=CC=C(C=C1)C2=CC(=O)C3=CC=CC=C3O2']
+
+def mce18(m):
+    ar = rdmd.CalcNumAromaticRings(m)
+    nar = rdmd.CalcNumAliphaticRings(m)
+    spiro = rdmd.CalcNumSpiroAtoms(m)
+    sp3 = rdmd.CalcFractionCSP3(m)
+    chiral = bool(Chem.FindMolChiralCenters(m,includeUnassigned=True))
+
+    zagreb = 0
+    index = 0
+    cyc = 0
+    for atom in m.GetAtoms():
+        zagreb = zagreb + rdchem.Atom.GetDegree(atom)**2
+        if atom.GetAtomicNum() == 6 and m.GetAtomWithIdx(index).IsInRing() == True and rdchem.Atom.GetHybridization(atom) == 4:
+            cyc += 1
+        index += 1
+
+    cyc = cyc/m.GetNumAtoms()
+    acyc = sp3 - cyc
+    q = 3 - 2*m.GetNumAtoms() + zagreb/2
+    return q * (ar + nar + spiro + chiral + (sp3 + cyc - acyc)/(1+sp3))
+
+for compound in smiles:
+    print(mce18(Chem.MolFromSmiles(compound)))
